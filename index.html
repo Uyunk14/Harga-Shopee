@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kalkulator Shopee</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 py-10 flex justify-center">
+  <div class="bg-white p-6 rounded-lg shadow max-w-3xl w-full">
+    <h1 class="text-center text-xl font-bold mb-4 text-green-700">Hitung Laba Shopee</h1>
+
+    <!-- Form -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
+      <input type="text" id="namaProduk" placeholder="Nama Produk" class="px-3 py-2 border border-gray-300 rounded text-sm" />
+      <input type="number" id="hargaProduk" placeholder="Harga Jual(Rp)" class="px-3 py-2 border border-gray-300 rounded text-sm" />
+      <button onclick="tambahProduk()" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 rounded text-sm">Tambah</button>
+    </div>
+
+    <!-- Tabel -->
+    <div class="overflow-x-auto">
+      <table class="border border-black w-full text-sm text-center table-fixed">
+        <thead class="bg-green-200 font-semibold">
+          <tr>
+            <th class="border border-black w-10">No.</th>
+            <th class="border border-black">Nama Produk</th>
+            <th class="border border-black w-28">Harga</th>
+            <th class="border border-black w-28">Potongan 8%</th>
+            <th class="border border-black w-32">Total Pendapatan</th>
+            <th class="border border-black w-12">🗑️</th>
+          </tr>
+        </thead>
+        <tbody id="tabelProduk">
+          <!-- Baris produk muncul di sini -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    let no = 1;
+
+    function formatRupiah(angka) {
+      return "Rp" + angka.toLocaleString("id-ID");
+    }
+
+    function parseRupiah(rp) {
+      return parseFloat(rp.replace(/[^\d]/g, '')) || 0;
+    }
+
+    function tambahProduk() {
+      const nama = document.getElementById("namaProduk").value.trim();
+      const harga = parseFloat(document.getElementById("hargaProduk").value);
+
+      if (!nama || isNaN(harga)) {
+        alert("Isi nama dan harga dengan benar.");
+        return;
+      }
+
+      tambahBaris(nama, harga);
+
+      document.getElementById("namaProduk").value = "";
+      document.getElementById("hargaProduk").value = "";
+    }
+
+    function tambahBaris(nama, harga) {
+      const potongan = harga * 0.08;
+      const bersih = harga - potongan;
+
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td class="border border-black py-1">${no}</td>
+        <td class="border border-black py-1">${nama}</td>
+        <td class="border border-black py-1 cursor-pointer text-blue-600 font-semibold" ondblclick="editHarga(this)">${formatRupiah(harga)}</td>
+        <td class="border border-black py-1 text-red-600">${formatRupiah(potongan)}</td>
+        <td class="border border-black py-1 text-green-700 font-medium">${formatRupiah(bersih)}</td>
+        <td class="border border-black py-1">
+          <button onclick="hapusBaris(this)" class="text-red-600 font-bold hover:text-red-800">✕</button>
+        </td>
+      `;
+      document.getElementById("tabelProduk").appendChild(row);
+      no++;
+    }
+
+    function hapusBaris(button) {
+      const row = button.closest("tr");
+      row.remove();
+      // Update nomor
+      const rows = document.querySelectorAll("#tabelProduk tr");
+      no = 1;
+      rows.forEach((tr) => {
+        tr.children[0].innerText = no++;
+      });
+    }
+
+    function editHarga(cell) {
+      const hargaAwal = parseRupiah(cell.innerText);
+      const input = document.createElement("input");
+      input.type = "number";
+      input.value = hargaAwal;
+      input.className = "w-full text-sm p-1 border border-gray-300 rounded";
+
+      cell.innerText = "";
+      cell.appendChild(input);
+      input.focus();
+
+      input.addEventListener("blur", () => updateHarga(cell, input.value));
+      input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") input.blur();
+      });
+    }
+
+    function updateHarga(cell, newHarga) {
+      const hargaBaru = parseFloat(newHarga);
+      if (isNaN(hargaBaru)) return;
+
+      const row = cell.parentElement;
+      const potongan = hargaBaru * 0.08;
+      const bersih = hargaBaru - potongan;
+
+      cell.innerHTML = formatRupiah(hargaBaru);
+      cell.setAttribute("ondblclick", "editHarga(this)");
+      row.children[3].innerText = formatRupiah(potongan);
+      row.children[4].innerText = formatRupiah(bersih);
+    }
+  </script>
+</body>
+</html>
